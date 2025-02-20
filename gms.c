@@ -451,6 +451,60 @@ void Functionselect(int choice)
     }
 }
 
+int getch()
+{
+    int ch;
+    struct termios oldt, newt;
+    tcgetattr(STDIN_FILENO, &oldt); // 保存当前终端属性
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);        // 关闭标准输入的缓冲和回显
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt); // 设置新属性
+    ch = getchar();
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // 恢复原来的终端属性
+    return ch;
+}
+
+int VerifyPassword()
+{
+    char input[50];
+    char password[] = "123456789"; // 修改为你想要的密码
+    int index = 0;
+    char ch;
+    printf("请输入密码: ");
+    while (1)
+    {
+        ch = getch();
+        if (ch == '\n' || ch == '\r')
+        {
+            input[index] = '\0';
+            printf("\n");
+            break;
+        }
+        else if (ch == 127 || ch == '\b') // 处理退格键
+        {
+            if (index > 0)
+            {
+                index--;
+                printf("\b \b");
+            }
+        }
+        else
+        {
+            input[index++] = ch;
+            printf("*");
+        }
+    }
+    if (strcmp(input, password) == 0)
+    {
+        printf("密码验证成功!\n\n");
+        return 1;
+    }
+    else
+    {
+        printf("密码错误，程序即将退出。\n");
+        return 0;
+    }
+}
 /*1、学生成绩管理系统
 （1）问题描述：要求以学生成绩管理业务为背景，设计一个“学生成绩管理系统”程序。
     对于学校来讲，学生成绩管理系统是不可缺少的组成部分，主要是对学生资料的录入、浏览、插入和删除等基本功能的实现。

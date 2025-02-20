@@ -13,6 +13,8 @@
 #include <string.h>
 #include <pthread.h>
 #include <errno.h>
+#include <termios.h>
+#include <unistd.h>
 
 // 函数声明
 void Menu();
@@ -26,6 +28,8 @@ void ExportToFile();
 void ImportFromFile();
 void Functionselect(int choice);
 void ClearAllStudents();
+int VerifyPassword();
+int getch();
 
 static pthread_mutex_t list_mutex = PTHREAD_MUTEX_INITIALIZER;
 

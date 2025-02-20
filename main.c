@@ -2,6 +2,11 @@
 
 int main()
 {
+    // 密码验证功能
+    if (!VerifyPassword())
+    {
+        return 1;
+    }
     // 使用整型接收用户选择，避免 getchar() 遗留换行符的问题
     while (1)
     {
