@@ -23,6 +23,7 @@ void Menu()
 // 1.录入学生信息
 void InputStudent()
 {
+    pthread_mutex_lock(&list_mutex);
     // 创建一个人，在堆中分配内存
     Node *pNewNode = (Node *)malloc(sizeof(Node));
     // 指针下一个指向空
@@ -70,6 +71,7 @@ void InputStudent()
     scanf("%d", &pNewNode->stu.clpy);
     printf("学生信息录入成功。\n\n");
     // bug fix:  system("pause");
+    pthread_mutex_unlock(&list_mutex);
 }
 
 // 2.打印学生信息
@@ -332,7 +334,7 @@ void ExportToFile()
     FILE *fp = fopen("student_data.txt", "w");
     if (!fp)
     {
-        printf("文件打开失败，无法导出\n\n");
+        fprintf(stderr, "错误: 无法创建文件 'student_data.txt' (错误码: %d)\n", errno);
         return;
     }
     Node *p = g_pHead;
@@ -400,6 +402,20 @@ void ImportFromFile()
     fclose(fp);
     printf("成功从 student_data.txt 导入学生信息\n\n");
 }
+
+// 添加清理内存的函数
+void ClearAllStudents()
+{
+    Node *current = g_pHead;
+    while (current != NULL)
+    {
+        Node *temp = current;
+        current = current->pNext;
+        free(temp);
+    }
+    g_pHead = NULL;
+}
+
 // 功能选择函数
 void Functionselect(int choice)
 {
