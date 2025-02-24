@@ -2,6 +2,7 @@
 
 int main()
 {
+    setlocale(LC_ALL, "");
     // 密码验证功能
     if (!VerifyPassword())
     {

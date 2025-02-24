@@ -15,6 +15,7 @@
 #include <errno.h>
 #include <termios.h>
 #include <unistd.h>
+#include <locale.h>
 
 // 函数声明
 void Menu();
