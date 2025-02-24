@@ -32,7 +32,8 @@ void ClearAllStudents();
 int VerifyPassword();
 int getch();
 
-static pthread_mutex_t list_mutex = PTHREAD_MUTEX_INITIALIZER;
+// static pthread_mutex_t list_mutex = PTHREAD_MUTEX_INITIALIZER;
+extern pthread_mutex_t list_mutex;
 
 typedef struct tagStudent
 {
@@ -53,6 +54,9 @@ typedef struct tagNode
 {
     Student stu;           // 学生信息
     struct tagNode *pNext; // 指向下一个节点
+    struct tagNode *pPrev; // 指向上一个节点
 } Node;
+
+extern Node *g_pHead;
 
 #endif

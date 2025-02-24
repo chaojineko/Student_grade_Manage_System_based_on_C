@@ -1,6 +1,9 @@
 #include "gms.h"
 
+pthread_mutex_t list_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 Node *g_pHead = NULL; // 定义头指针
+
 // 菜单
 void Menu()
 {
@@ -24,27 +27,10 @@ void Menu()
 void InputStudent()
 {
     pthread_mutex_lock(&list_mutex);
-    // 创建一个人，在堆中分配内存
+    // 在堆上分配一个节点内存
     Node *pNewNode = (Node *)malloc(sizeof(Node));
-    // 指针下一个指向空
     pNewNode->pNext = NULL;
-
-    // 查找链表的尾结点
-    Node *p = g_pHead;
-    while (g_pHead != NULL && p->pNext != NULL)
-    {
-        p = p->pNext;
-    }
-
-    // 把节点插到链表的尾节点
-    if (g_pHead == NULL)
-    {
-        g_pHead = pNewNode;
-    }
-    else
-    {
-        p->pNext = pNewNode;
-    }
+    pNewNode->pPrev = NULL;
 
     // 录入学生信息
     printf("请输入学生姓名：\n");
@@ -54,7 +40,7 @@ void InputStudent()
     printf("请输入学生年龄：\n");
     scanf("%d", &pNewNode->stu.nAge);
     printf("请输入学号：\n");
-    scanf("%lld", &pNewNode->stu.nStuNo); // 用长整型格式说明符%lld打印学号
+    scanf("%lld", &pNewNode->stu.nStuNo);
     printf("请输入成绩：\n");
     scanf("%d", &pNewNode->stu.nScore);
     printf("请输入高数成绩：\n");
@@ -70,84 +56,100 @@ void InputStudent()
     printf("请输入大学物理成绩：\n");
     scanf("%d", &pNewNode->stu.clpy);
     printf("学生信息录入成功。\n\n");
-    // bug fix:  system("pause");
+
+    // 插入到循环双向链表中
+    if (g_pHead == NULL)
+    {
+        g_pHead = pNewNode;
+        pNewNode->pNext = pNewNode;
+        pNewNode->pPrev = pNewNode;
+    }
+    else
+    {
+        Node *pLast = g_pHead->pPrev;
+        pNewNode->pNext = g_pHead;
+        pNewNode->pPrev = pLast;
+        pLast->pNext = pNewNode;
+        g_pHead->pPrev = pNewNode;
+    }
+
     pthread_mutex_unlock(&list_mutex);
 }
 
 // 2.打印学生信息
 void PrintStudent()
 {
+    if (g_pHead == NULL)
+    {
+        printf("暂无学生信息\n");
+        return;
+    }
 
-    // 遍历链表
+    // 打印表头
+    printf("*********************************************************************************\n");
+    printf("* %-20s *\n", "大学生成绩管理系统");
+    printf("*********************************************************************************\n");
+    printf("* %-12s * %-12s * %-8s * %-6s * %-8s * %-12s * %-14s * %-12s * %-12s * %-12s * %-12s *\n",
+           "学号", "姓名", "性别", "年龄", "成绩", "高数成绩", "大学英语成绩", "数据结构成绩", "计算机成绩", "概率论成绩", "大学物理成绩");
+    printf("*********************************************************************************\n");
+
     Node *p = g_pHead;
-    if (p == NULL)
+    do
     {
-        printf("系统中暂无学生信息，请录入后再来打印查看。\n\n");
-    }
-    else
-    {
+        printf("*\t%lld\t*\t%s\t*\t%s\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\n",
+               p->stu.nStuNo,
+               p->stu.szName,
+               p->stu.szSex,
+               p->stu.nAge,
+               p->stu.nScore,
+               p->stu.hmath,
+               p->stu.clgen,
+               p->stu.dsaa,
+               p->stu.cs,
+               p->stu.prothy,
+               p->stu.clpy);
         printf("*********************************************************************************\n");
-        printf("* %-20s *\n", "大学生成绩管理系统");
-        printf("*********************************************************************************\n");
-        printf("* %-12s * %-12s * %-8s * %-6s * %-8s * %-12s * %-14s * %-12s * %-12s * %-12s * %-12s *\n",
-               "学号", "姓名", "性别", "年龄", "成绩", "高数成绩", "大学英语成绩", "数据结构成绩", "计算机成绩", "概率论成绩", "大学物理成绩");
-        printf("*********************************************************************************\n");
-
-        while (p != NULL)
-        {
-            printf("*\t%lld\t*\t%s\t*\t%s\t*\t%d\t*\t%d\t*%d\t*%d\t*%d\t*%d\t*%d\t*%d\t*\n",
-                   p->stu.nStuNo,
-                   p->stu.szName,
-                   p->stu.szSex,
-                   p->stu.nAge,
-                   p->stu.nScore,
-                   p->stu.hmath,
-                   p->stu.clgen,
-                   p->stu.dsaa,
-                   p->stu.cs,
-                   p->stu.prothy,
-                   p->stu.clpy);
-
-            // 下一个节点
-            p = p->pNext;
-            printf("*********************************************************************************\n");
-        }
-    }
-
-    // bug fix:
+        p = p->pNext;
+    } while (p != g_pHead);
 }
 
 // 3.统计所有学生人数
 void CountStudent()
 {
     int countStu = 0;
+    if (g_pHead == NULL)
+    {
+        printf("学生总人数：%d\n\n", countStu);
+        return;
+    }
 
-    // 遍历链表
     Node *p = g_pHead;
-    while (p != NULL)
+    do
     {
         countStu++;
         p = p->pNext;
-    }
-    printf("学生总人数：%d\n\n", countStu);
+    } while (p != g_pHead);
 
-    // bug fix:
+    printf("学生总人数：%d\n\n", countStu);
 }
 
 // 4.查找学生信息
 void FindStudent()
 {
-
     long long stuNum;
     printf("请输入查找学生学号：");
     scanf("%lld", &stuNum);
-    // 遍历链表查找，查找到后进行信息显示
-    Node *p = g_pHead;
-    // 对表头进行展示一次
+
+    if (g_pHead == NULL)
+    {
+        printf("系统中暂无学生信息，请录入后再来打印查看。\n\n");
+        return;
+    }
+
     bool isShowHead = false;
-    // 记录是否有找到该学号的学生信息
     bool isFindStu = false;
-    while (p != NULL)
+    Node *p = g_pHead;
+    do
     {
         if (stuNum == p->stu.nStuNo)
         {
@@ -159,7 +161,7 @@ void FindStudent()
                 printf("*********************************************************************************\n");
                 isShowHead = true;
             }
-            printf("*\t%lld\t*\t%s\t*\t%s\t*\t%d\t*\t%d\t*%d\t*%d\t*%d\t*%d\t*%d\t*%d\t*\n",
+            printf("*\t%lld\t*\t%s\t*\t%s\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\n",
                    p->stu.nStuNo,
                    p->stu.szName,
                    p->stu.szSex,
@@ -171,18 +173,16 @@ void FindStudent()
                    p->stu.cs,
                    p->stu.prothy,
                    p->stu.clpy);
-            isFindStu = true;
             printf("*********************************************************************************\n");
+            isFindStu = true;
         }
         p = p->pNext;
-    }
+    } while (p != g_pHead);
 
     if (!isFindStu)
     {
         printf("学号输入有误，系统中暂无该学生信息。\n\n");
     }
-
-    // bug fix:
 }
 
 // 5.修改学生信息
@@ -191,13 +191,17 @@ void ChangeStudent()
     long long stuNum;
     printf("请输入欲修改学生的学号：");
     scanf("%lld", &stuNum);
-    // 遍历链表查找，查找到后进行信息显示
-    Node *p = g_pHead;
-    // 对表头进行展示一次
+
+    if (g_pHead == NULL)
+    {
+        printf("系统中暂无学生信息，无法进行修改。\n\n");
+        return;
+    }
+
     bool isShowHead = false;
-    // 记录是否有找到该学号的学生信息
     bool isFindStu = false;
-    while (p != NULL)
+    Node *p = g_pHead;
+    do
     {
         if (stuNum == p->stu.nStuNo)
         {
@@ -209,7 +213,7 @@ void ChangeStudent()
                 printf("*********************************************************************************\n");
                 isShowHead = true;
             }
-            printf("*\t%lld\t*\t%s\t*\t%s\t*\t%d\t*\t%d\t*%d\t*%d\t*%d\t*%d\t*%d\t*%d\t*\n",
+            printf("*\t%lld\t*\t%s\t*\t%s\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\n",
                    p->stu.nStuNo,
                    p->stu.szName,
                    p->stu.szSex,
@@ -249,87 +253,66 @@ void ChangeStudent()
             printf("学生信息修改成功，请注意及时保存。\n\n");
         }
         p = p->pNext;
-    }
+    } while (p != g_pHead);
 
     if (!isFindStu)
     {
         printf("学号输入有误，系统中暂无该学生信息，无法进行修改。\n\n");
     }
-
-    // bug fix:
 }
 
 // 6.删除学生信息
 void DeleteStudent()
 {
-
     long long stuNum;
     printf("请输入删除学生的学号：");
     scanf("%lld", &stuNum);
-    // 遍历链表查找，查找到后进行信息显示
-    Node *p = g_pHead;
-    // 记录前一个节点，删除时方便操作
-    Node *beforeNode = g_pHead;
 
-    // 对表头进行展示一次
-    bool isShowHead = false;
-    // 记录是否有找到该学号的学生信息
+    if (g_pHead == NULL)
+    {
+        printf("系统中暂无学生信息，无法进行删除操作。\n\n");
+        return;
+    }
+
     bool isFindStu = false;
-    while (p != NULL)
+    Node *p = g_pHead;
+    Node *toDelete = NULL;
+
+    do
     {
         if (stuNum == p->stu.nStuNo)
         {
-            if (!isShowHead)
-            {
-                printf("***********************************************************************************************\n");
-                printf("* %-10s * %-10s * %-6s * %-4s * %-6s * %-10s * %-12s * %-10s * %-10s * %-10s * %-10s *\n",
-                       "学号", "姓名", "性别", "年龄", "成绩", "高数成绩", "大学英语成绩", "数据结构成绩", "计算机成绩", "概率论成绩", "大学物理成绩");
-                printf("***********************************************************************************************\n");
-                isShowHead = true;
-            }
-            printf("* %-10lld * %-10s * %-6s * %-4d * %-6d * %-10d * %-12d * %-10d * %-10d * %-10d * %-10d *\n",
-                   p->stu.nStuNo,
-                   p->stu.szName,
-                   p->stu.szSex,
-                   p->stu.nAge,
-                   p->stu.nScore,
-                   p->stu.hmath,
-                   p->stu.clgen,
-                   p->stu.dsaa,
-                   p->stu.cs,
-                   p->stu.prothy,
-                   p->stu.clpy);
+            toDelete = p;
             isFindStu = true;
-            printf("*********************************************************************************\n");
-
-            // 删除节点为头节点
-            if (p == g_pHead)
-            {
-                g_pHead = p->pNext;
-            }
-            // 删除节点为尾节点
-            else if (p->pNext == NULL)
-            {
-                p = beforeNode;
-                p->pNext = NULL;
-            }
-            // 删除节点为中间节点
-            else
-            {
-                beforeNode->pNext = p->pNext;
-            }
-            printf("删除成功，请记得保存。\n\n");
+            break;
         }
-        beforeNode = p;
         p = p->pNext;
-    }
+    } while (p != g_pHead);
 
     if (!isFindStu)
     {
         printf("学号输入有误，系统中暂无该学生信息，无法进行删除操作。\n\n");
+        return;
     }
 
-    // bug fix:
+    // 删除找到的节点保存下一个指针
+    Node *nextNode = toDelete->pNext;
+    if (toDelete->pNext == toDelete)
+    {
+        // 只有一个节点
+        g_pHead = NULL;
+    }
+    else
+    {
+        toDelete->pPrev->pNext = toDelete->pNext;
+        toDelete->pNext->pPrev = toDelete->pPrev;
+        if (toDelete == g_pHead)
+        {
+            g_pHead = toDelete->pNext;
+        }
+    }
+    free(toDelete);
+    printf("删除成功\n");
 }
 
 // 7.导出函数
@@ -341,22 +324,25 @@ void ExportToFile()
         fprintf(stderr, "错误: 无法创建文件 'student_data.txt' (错误码: %d)\n", errno);
         return;
     }
-    Node *p = g_pHead;
-    while (p)
+    if (g_pHead != NULL)
     {
-        fprintf(fp, "%s %s %d %lld %d %d %d %d %d %d %d\n",
-                p->stu.szName,
-                p->stu.szSex,
-                p->stu.nAge,
-                p->stu.nStuNo,
-                p->stu.nScore,
-                p->stu.hmath,
-                p->stu.clgen,
-                p->stu.dsaa,
-                p->stu.cs,
-                p->stu.prothy,
-                p->stu.clpy);
-        p = p->pNext;
+        Node *p = g_pHead;
+        do
+        {
+            fprintf(fp, "%s %s %d %lld %d %d %d %d %d %d %d\n",
+                    p->stu.szName,
+                    p->stu.szSex,
+                    p->stu.nAge,
+                    p->stu.nStuNo,
+                    p->stu.nScore,
+                    p->stu.hmath,
+                    p->stu.clgen,
+                    p->stu.dsaa,
+                    p->stu.cs,
+                    p->stu.prothy,
+                    p->stu.clpy);
+            p = p->pNext;
+        } while (p != g_pHead);
     }
     fclose(fp);
     printf("学生信息已导出至 student_data.txt\n\n");
@@ -371,10 +357,14 @@ void ImportFromFile()
         printf("文件打开失败，无法导入\n\n");
         return;
     }
+    // 清空原有链表数据
+    ClearAllStudents();
+
     while (1)
     {
         Node *pNewNode = (Node *)malloc(sizeof(Node));
         pNewNode->pNext = NULL;
+        pNewNode->pPrev = NULL;
         if (fscanf(fp, "%s %s %d %lld %d %d %d %d %d %d %d",
                    pNewNode->stu.szName,
                    pNewNode->stu.szSex,
@@ -391,32 +381,39 @@ void ImportFromFile()
             free(pNewNode);
             break;
         }
-        if (!g_pHead)
+        // 插入到循环双向链表中
+        if (g_pHead == NULL)
         {
             g_pHead = pNewNode;
+            pNewNode->pNext = pNewNode;
+            pNewNode->pPrev = pNewNode;
         }
         else
         {
-            Node *p = g_pHead;
-            while (p->pNext)
-                p = p->pNext;
-            p->pNext = pNewNode;
+            Node *pLast = g_pHead->pPrev;
+            pNewNode->pNext = g_pHead;
+            pNewNode->pPrev = pLast;
+            pLast->pNext = pNewNode;
+            g_pHead->pPrev = pNewNode;
         }
     }
     fclose(fp);
     printf("成功从 student_data.txt 导入学生信息\n\n");
 }
 
-// 添加清理内存的函数
+// 清理所有学生节点的内存
 void ClearAllStudents()
 {
-    Node *current = g_pHead;
-    while (current != NULL)
+    if (g_pHead == NULL)
+        return;
+    Node *p = g_pHead->pNext;
+    while (p != g_pHead)
     {
-        Node *temp = current;
-        current = current->pNext;
+        Node *temp = p;
+        p = p->pNext;
         free(temp);
     }
+    free(g_pHead);
     g_pHead = NULL;
 }
 
@@ -425,28 +422,28 @@ void Functionselect(int choice)
 {
     switch (choice)
     {
-    case 1: // 1.录入学生信息
+    case 1: // 录入学生信息
         InputStudent();
         break;
-    case 2: // 2.打印学生信息
+    case 2: // 打印学生信息
         PrintStudent();
         break;
-    case 3: // 3.统计所有学生人数
+    case 3: // 统计所有学生人数
         CountStudent();
         break;
-    case 4: // 4.查找学生信息
+    case 4: // 查找学生信息
         FindStudent();
         break;
-    case 5: // 5.修改学生信息
+    case 5: // 修改学生信息
         ChangeStudent();
         break;
-    case 6: // 6.删除学生信息
+    case 6: // 删除学生信息
         DeleteStudent();
         break;
-    case 7: // 7.导出文件
+    case 7: // 导出文件
         ExportToFile();
         break;
-    case 8: // 8.导入文件
+    case 8: // 导入文件
         ImportFromFile();
         break;
     default:
@@ -459,19 +456,19 @@ int getch()
 {
     int ch;
     struct termios oldt, newt;
-    tcgetattr(STDIN_FILENO, &oldt); // 保存当前终端属性
+    tcgetattr(STDIN_FILENO, &oldt); // 保存当前属性
     newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);        // 关闭标准输入的缓冲和回显
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt); // 设置新属性
+    newt.c_lflag &= ~(ICANON | ECHO); // 关闭缓冲和回显
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
     ch = getchar();
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // 恢复原来的终端属性
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // 恢复属性
     return ch;
 }
 
 int VerifyPassword()
 {
     char input[50];
-    char password[] = "123456789"; // 修改为你想要的密码
+    char password[] = "123456789"; // 修改密码
     int index = 0;
     char ch;
     printf("请输入密码: ");
@@ -484,7 +481,7 @@ int VerifyPassword()
             printf("\n");
             break;
         }
-        else if (ch == 127 || ch == '\b') // 处理退格键
+        else if (ch == 127 || ch == '\b')
         {
             if (index > 0)
             {
@@ -509,6 +506,7 @@ int VerifyPassword()
         return 0;
     }
 }
+
 /*1、学生成绩管理系统
 （1）问题描述：要求以学生成绩管理业务为背景，设计一个“学生成绩管理系统”程序。
     对于学校来讲，学生成绩管理系统是不可缺少的组成部分，主要是对学生资料的录入、浏览、插入和删除等基本功能的实现。
@@ -520,7 +518,10 @@ int VerifyPassword()
 
 （4）实现操作：程序设计一般由算法和数据结构两部分构成。管理学生的成绩适合用单链表，方便随时插入和删除学生记录，实现动态管理。
     一个学生作为一个结点，该结点类型为结构体，结构体中的域表示学生的属性。每个结点除了存放属性外，还存放指向后继结点的指针。
-
-①定义单链表结点的结构体；      ②单链表的建立模块；
-③插入模块；  ④删除模块；  ⑤输出模块；  ⑥主模块
+①定义单链表结点的结构体；
+②单链表的建立模块；
+③插入模块；
+④删除模块；
+⑤输出模块；
+⑥主模块
 */
