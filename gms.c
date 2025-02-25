@@ -26,9 +26,17 @@ void Menu()
 // 1.录入学生信息
 void InputStudent()
 {
-    pthread_mutex_lock(&list_mutex);
+    pthread_mutex_lock(&list_mutex); // 线程锁
     // 在堆上分配一个节点内存
     Node *pNewNode = (Node *)malloc(sizeof(Node));
+    if (pNewNode == (Node *)NULL)
+    {
+        perror("malloc ...");
+        return;
+    }
+
+    memset(pNewNode, 0, sizeof(Node));
+
     pNewNode->pNext = NULL;
     pNewNode->pPrev = NULL;
 
@@ -451,7 +459,7 @@ void Functionselect(int choice)
         break;
     }
 }
-
+// 密码显示
 int getch()
 {
     int ch;
@@ -464,11 +472,11 @@ int getch()
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // 恢复属性
     return ch;
 }
-
+// 密码显示
 int VerifyPassword()
 {
     char input[50];
-    char password[] = "123456789"; // 修改密码
+    char password[] = "123456789"; // 密码
     int index = 0;
     char ch;
     printf("请输入密码: ");
