@@ -1,0 +1,27 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "gms.h"
+#include "utils.h"
+
+int main() {
+    int choice;
+
+    // 验证密码
+    if (!VerifyPassword()) {
+        return 0; // 密码验证失败，退出程序
+    }
+
+    while (1) {
+        ClearScreen();
+        Menu(); // 显示菜单
+        printf("请输入您的选择: ");
+        scanf("%d", &choice);
+        Functionselect(choice); // 根据用户选择调用相应功能
+        if (choice == 0) {
+            break; // 退出系统
+        }
+    }
+
+    ClearAllStudents(); // 清理所有学生信息
+    return 0;
+}
