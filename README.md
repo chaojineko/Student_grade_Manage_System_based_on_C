@@ -3,6 +3,7 @@
 ## 项目介绍
 
 本项目是一个面向过程的、基于C语言的学生成绩管理系统，采用双向循环链表数据结构实现学生信息的存储与管理。系统具有数据加密存储和密码保护功能，保证学生信息安全。
+项目地址: https://github.com/chaojineko/Student_grade_Manage_System_based_on_C
 
 ## 功能特性
 
