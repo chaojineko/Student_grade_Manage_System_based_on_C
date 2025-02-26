@@ -31,6 +31,11 @@ void Functionselect(int choice);
 void ClearAllStudents();
 int VerifyPassword();
 int getch();
+void ClearScreen();
+char *hash_password(const char *password);
+int VerifyPasswordWithHash(const char *input, const char *hashed_pwd);
+void encrypt_data(char *data);
+void decrypt_data(char *data);
 
 // static pthread_mutex_t list_mutex = PTHREAD_MUTEX_INITIALIZER;
 extern pthread_mutex_t list_mutex;

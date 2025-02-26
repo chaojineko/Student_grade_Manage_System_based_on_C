@@ -3,6 +3,9 @@
 int main()
 {
     setlocale(LC_ALL, "");
+    char *test_hash = hash_password("123456789");
+    printf("测试密码 '123456789' 的哈希值: %s\n", test_hash);
+    free(test_hash);
     // 密码验证功能
     if (!VerifyPassword())
     {
@@ -26,9 +29,12 @@ int main()
             ;
         if (choice == 0)
         {
-            return 0;
+            break; // 不立即返回，而是退出循环后清理资源
         }
+        ClearScreen();
         Functionselect(choice);
     }
+    // 程序退出前清理所有学生数据
+    ClearAllStudents();
     return 0;
 }

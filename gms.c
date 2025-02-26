@@ -332,12 +332,13 @@ void ExportToFile()
         fprintf(stderr, "错误: 无法创建文件 'student_data.txt' (错误码: %d)\n", errno);
         return;
     }
+    char buffer[256];
     if (g_pHead != NULL)
     {
         Node *p = g_pHead;
         do
         {
-            fprintf(fp, "%s %s %d %lld %d %d %d %d %d %d %d\n",
+            sprintf(buffer, "%s %s %d %lld %d %d %d %d %d %d %d",
                     p->stu.szName,
                     p->stu.szSex,
                     p->stu.nAge,
@@ -349,6 +350,8 @@ void ExportToFile()
                     p->stu.cs,
                     p->stu.prothy,
                     p->stu.clpy);
+            encrypt_data(buffer); // 加密数据
+            fprintf(fp, "%s\n", buffer);
             p = p->pNext;
         } while (p != g_pHead);
     }
@@ -365,15 +368,35 @@ void ImportFromFile()
         printf("文件打开失败，无法导入\n\n");
         return;
     }
+
     // 清空原有链表数据
     ClearAllStudents();
 
-    while (1)
+    char buffer[256];
+    while (fgets(buffer, sizeof(buffer), fp))
     {
+        // 移除换行符
+        size_t len = strlen(buffer);
+        if (len > 0 && buffer[len - 1] == '\n')
+        {
+            buffer[len - 1] = '\0';
+        }
+
+        decrypt_data(buffer); // 解密数据
+
+        // 创建新节点
         Node *pNewNode = (Node *)malloc(sizeof(Node));
+        if (!pNewNode)
+        {
+            printf("内存分配失败\n");
+            continue;
+        }
+
         pNewNode->pNext = NULL;
         pNewNode->pPrev = NULL;
-        if (fscanf(fp, "%s %s %d %lld %d %d %d %d %d %d %d",
+
+        // 解析解密后的数据
+        if (sscanf(buffer, "%s %s %d %lld %d %d %d %d %d %d %d",
                    pNewNode->stu.szName,
                    pNewNode->stu.szSex,
                    &pNewNode->stu.nAge,
@@ -387,8 +410,9 @@ void ImportFromFile()
                    &pNewNode->stu.clpy) != 11)
         {
             free(pNewNode);
-            break;
+            continue;
         }
+
         // 插入到循环双向链表中
         if (g_pHead == NULL)
         {
@@ -405,6 +429,7 @@ void ImportFromFile()
             g_pHead->pPrev = pNewNode;
         }
     }
+
     fclose(fp);
     printf("成功从 student_data.txt 导入学生信息\n\n");
 }
@@ -476,7 +501,9 @@ int getch()
 int VerifyPassword()
 {
     char input[50];
-    char password[] = "123456789"; // 密码
+    // 存储哈希后的密码，而非明文
+    char password[] = "377821035cdbb82"; //  "123456789"的哈希值
+    // linux下哈希值与win不同
     int index = 0;
     char ch;
     printf("请输入密码: ");
@@ -503,7 +530,7 @@ int VerifyPassword()
             printf("*");
         }
     }
-    if (strcmp(input, password) == 0)
+    if (VerifyPasswordWithHash(input, password)) // 使用局部变量password
     {
         printf("密码验证成功!\n\n");
         return 1;
@@ -513,6 +540,61 @@ int VerifyPassword()
         printf("密码错误，程序即将退出。\n");
         return 0;
     }
+}
+
+// 清屏函数
+void ClearScreen()
+{
+#ifdef _WIN32
+    system("cls");
+#else
+    system("clear");
+#endif
+}
+
+// 简单的密码哈希函数（只是演示）
+char *hash_password(const char *password)
+{
+    char *hashed = (char *)malloc(33); // MD5长度为32字符+'\0'
+    if (!hashed)
+        return NULL;
+
+    // 简单哈希算法，生产环境应使用专业密码哈希库
+    unsigned long hash = 5381;
+    int c;
+    while ((c = *password++))
+        hash = ((hash << 5) + hash) + c;
+
+    sprintf(hashed, "%lx", hash);
+    return hashed;
+}
+
+// 验证哈希密码
+int VerifyPasswordWithHash(const char *input, const char *hashed_pwd)
+{
+    char *hashed_input = hash_password(input);
+    if (!hashed_input)
+        return 0;
+
+    int result = (strcmp(hashed_input, hashed_pwd) == 0);
+    free(hashed_input);
+    return result;
+}
+
+// 简单的异或加密/解密（对称加密）
+void encrypt_data(char *data)
+{
+    char key = 0xAB; // 加密密钥
+    for (int i = 0; data[i] != '\0'; i++)
+    {
+        data[i] = data[i] ^ key;
+    }
+}
+
+void decrypt_data(char *data)
+{
+    // 异或加密是对称的，解密用同样的密钥
+    encrypt_data(data);
 }
 
 /*1、学生成绩管理系统
