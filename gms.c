@@ -104,7 +104,7 @@ void PrintStudent()
     Node *p = g_pHead;
     do
     {
-        printf("*\t%lld\t*\t%s\t*\t%s\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\n",
+        printf("* %-12lld * %-12s * %-8s * %-6d * %-8d * %-12d * %-14d * %-12d * %-12d * %-12d * %-12d *\n",
                p->stu.nStuNo,
                p->stu.szName,
                p->stu.szSex,
@@ -169,7 +169,7 @@ void FindStudent()
                 printf("*********************************************************************************\n");
                 isShowHead = true;
             }
-            printf("*\t%lld\t*\t%s\t*\t%s\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\n",
+            printf("* %-12lld * %-12s * %-8s * %-6d * %-8d * %-12d * %-14d * %-12d * %-12d * %-12d * %-12d *\n",
                    p->stu.nStuNo,
                    p->stu.szName,
                    p->stu.szSex,
@@ -221,7 +221,7 @@ void ChangeStudent()
                 printf("*********************************************************************************\n");
                 isShowHead = true;
             }
-            printf("*\t%lld\t*\t%s\t*\t%s\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\t%d\t*\n",
+            printf("* %-12lld * %-12s * %-8s * %-6d * %-8d * %-12d * %-14d * %-12d * %-12d * %-12d * %-12d *\n",
                    p->stu.nStuNo,
                    p->stu.szName,
                    p->stu.szSex,
